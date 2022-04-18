@@ -17,6 +17,7 @@ class Game:
         self.errors = 0
         self.blacked_out_word = "_"
         self.tried_letters = []
+        self.question_unanswered = True
 
     # Game:
 
@@ -75,26 +76,18 @@ class Game:
     # Setting word and checking:
 
     def get_user_given_word(self):
-        question_unanswered = True
-        while question_unanswered:
+        while self.question_unanswered:
             print("Você gostaria de inserir uma palavra? [s/n]")
             user_input = input().lower()
             if user_input == "s":
                 user_input = input("Insira a palavra: ").lower()
                 if user_input.isalpha():
-                    self.game_word = user_input
-                    self.add_user_word_to_bank(user_input)
-                    self.blacked_out_word = len(user_input)*"_"
-                    question_unanswered = False
-                    self.do_accent_check()
-                    print("Pressione enter para começar")
-                    input()
-                    self.clear_console()
+                    self.apply_word(user_input)
                 else:
-                    print("A palavra não pode conter caracteres especiais - mesmo hífen")
+                    self.add_more_than_one_word(user_input)
             elif user_input == "n":
                 print("Então aguarde enquanto puxamos uma palavra do nosso banco")
-                question_unanswered = False
+                self.question_unanswered = False
                 self.get_random_word()
             else:
                 print("Favor inserir uma resposta válida")
@@ -130,16 +123,61 @@ class Game:
         else:
             return ""
 
+    # Set the user word
+
+    def apply_word(self, user_input):
+        self.game_word = user_input
+        self.add_user_word_to_bank(user_input)
+        self.blacked_out_word = len(user_input)*"_"
+        self.question_unanswered = False
+        self.do_accent_check()
+        if " " in user_input:
+            for index, letter in enumerate(self.game_word):
+                if letter == " ":
+                    listed_blacked_out_word = list(self.blacked_out_word)
+                    listed_blacked_out_word[index] = self.real_word[index]
+                    self.blacked_out_word="".join(listed_blacked_out_word)
+        if "-" in user_input:
+            for index, letter in enumerate(self.game_word):
+                if letter == "-":
+                    listed_blacked_out_word = list(self.blacked_out_word)
+                    listed_blacked_out_word[index] = self.real_word[index]
+                    self.blacked_out_word="".join(listed_blacked_out_word)
+        print("Pressione enter para começar")
+        input()
+        self.clear_console()
+
+    # More than one word
+
+    def add_more_than_one_word(self, user_input):
+        array_of_words = ""
+        entered_check = False
+        is_okay = True
+
+        if "-" in user_input and "--" not in user_input:
+            entered_check = True
+            array_of_words = user_input.split('-')
+
+        if " " in user_input:
+            entered_check = True
+            array_of_words = user_input.split(' ')
+
+        if entered_check:
+            for word in array_of_words:
+                if not word.isalpha():
+                    is_okay = False
+            if is_okay:
+                self.apply_word(user_input)
+            else:
+                print("A palavra não pode conter caracteres especiais. Hífens e espaços são permitidos")
+        else:
+            print("A palavra não pode conter caracteres especiais. Hífens e espaços são permitidos")
+
     # Word bank and picking:
 
     def get_random_word(self):
         my_word = word_bank_user.word_getter()
-        self.game_word = my_word
-        self.blacked_out_word = len(my_word)*"_"
-        self.do_accent_check()
-        print("Pressione enter para começar")
-        input()
-        self.clear_console()
+        self.apply_word(my_word)
     
     def add_user_word_to_bank(self, user_word):
         word_bank_user.word_adder(user_word)
