@@ -1,6 +1,6 @@
-import os, random
+import os, random, json
 folder_input = '.' + os.sep + 'word_bank' + os.sep
-file_input = folder_input + 'word_bank.txt' 
+file_input = folder_input + 'word_bank.json' 
 
 def word_adder(new_word):
     array_of_words = bank_extractor()
@@ -19,8 +19,7 @@ def word_getter():
 
 def bank_extractor():
     bank = open(file_input, 'r', encoding="utf-8")
-    string_bank = bank.read()
-    array_of_words = string_bank.split('--')
-    array_of_words.pop()
+    data = json.load(bank)
     bank.close()
-    return array_of_words
+    string_bank = data["wordbank"]
+    return string_bank
